@@ -52,6 +52,14 @@ rank3(_C) ->
     ?assertMatch(22, ord_stat:rank(2, L)),
     ok.
 
+rank4(_C) ->
+    L = [22, 33, 11, 22, 11, 11, 22, 22],
+    ?assertMatch(11, ord_stat:rank(1, L)),
+    ?assertMatch(11, ord_stat:rank(2, L)),
+    ?assertMatch(22, ord_stat:rank(5, L)),
+    ?assertMatch(33, ord_stat:rank(8, L)),
+    ok.
+
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
