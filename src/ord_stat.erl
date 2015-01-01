@@ -9,9 +9,9 @@ rank(1, [X]) ->
 rank(I, _) when I =< 0 ->
     erlang:error({wrong_input_rank, I});
 rank(I, []) ->
-    erlang:error(empty_list, [I]);
+    erlang:error({empty_list, I});
 rank(I, [_] = List) ->
-    erlang:error(too_short_list, [I, List]);
+    erlang:error({too_short_list, [I, List]});
 rank(I, List) ->
     {Pivot, Smaller, Bigger} = rand_partition(List),
     K = length(Smaller), %% FIXME: calculate length during partitioning
