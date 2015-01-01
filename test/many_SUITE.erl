@@ -95,7 +95,7 @@ compare_with_sort_one_round(Cur, Max, Step, Prob) ->
 compare_with_sort_one_item(Len, Max, Prob) ->
     Data = gen_data(Len, Max, Prob),
     By_sort = get_items_by_sort(Data),
-    By_stat = get_items_by_stat(Data),
+    By_stat = get_items_by_stat(Len, Data),
     case By_stat of
         By_sort ->
             ok;
@@ -132,8 +132,9 @@ gen_value(Max, Prob, Prev) ->
     end.
 
 get_items_by_sort(Data) ->
-    erlang:error(not_implemented).
+    lists:sort(Data).
 
-get_items_by_stat(Data) ->
-    erlang:error(not_implemented).
+get_items_by_stat(Len, Data) ->
+    Indices = lists:seq(1, Len),
+    [ord_stat:rank(Idx, Data) || Idx <- Indices].
 
