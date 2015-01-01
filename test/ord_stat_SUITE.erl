@@ -23,6 +23,7 @@ groups() ->
                 {group, read}
                ]},
      {read, [], [
+                 rank1
                 ]}
     ].
 
@@ -30,6 +31,13 @@ init_per_suite(Config) ->
     Config.
 
 end_per_suite(_Config) ->
+    ok.
+
+rank1(_C) ->
+    L = [22, 33, 11],
+    ?assertMatch(11, ord_stat:rank(1, L)),
+    ?assertMatch(22, ord_stat:rank(2, L)),
+    ?assertMatch(33, ord_stat:rank(3, L)),
     ok.
 
 %% ===================================================================
