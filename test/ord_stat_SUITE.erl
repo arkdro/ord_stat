@@ -23,6 +23,7 @@ groups() ->
                 {group, read}
                ]},
      {read, [], [
+                 rank2,
                  rank1
                 ]}
     ].
@@ -38,6 +39,11 @@ rank1(_C) ->
     ?assertMatch(11, ord_stat:rank(1, L)),
     ?assertMatch(22, ord_stat:rank(2, L)),
     ?assertMatch(33, ord_stat:rank(3, L)),
+    ok.
+
+rank2(_C) ->
+    ?assertError({wrong_input_rank, 0}, ord_stat:rank(0, [1, 2])),
+    ?assertError({too_short_list, [2, [22]]}, ord_stat:rank(3, [11, 22])),
     ok.
 
 %% ===================================================================
