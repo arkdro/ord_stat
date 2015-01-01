@@ -4,8 +4,8 @@
          rank/2
         ]).
 
-rank(1, [X]) ->
-    X;
+rank(1, List) ->
+    lists:min(List);
 rank(I, _) when I =< 0 ->
     erlang:error({wrong_input_rank, I});
 rank(I, []) ->
