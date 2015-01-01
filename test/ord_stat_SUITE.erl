@@ -20,11 +20,8 @@ all() ->
 groups() ->
     [
      {all, [], [
-                {group, write},
                 {group, read}
                ]},
-     {write, [], [
-                 ]},
      {read, [], [
                 ]}
     ].
