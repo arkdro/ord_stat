@@ -6,6 +6,8 @@
 
 rank(1, [X]) ->
     X;
+rank(I, _) when I =< 0 ->
+    erlang:error({wrong_input_rank, I});
 rank(I, []) ->
     erlang:error(empty_list, [I]);
 rank(I, [_] = List) ->
