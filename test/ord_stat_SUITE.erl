@@ -44,7 +44,7 @@ rank1(_C) ->
 
 rank2(_C) ->
     ?assertError({wrong_input_rank, 0}, ord_stat:rank(0, [1, 2])),
-    ?assertError({too_short_list, [2, [22]]}, ord_stat:rank(3, [11, 22])),
+    ?assertError({too_big_input_rank, [3, 2]}, ord_stat:rank(3, [11, 22])),
     ok.
 
 rank3(_C) ->
