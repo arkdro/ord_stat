@@ -86,7 +86,7 @@ compare_with_sort_one_round(Config) ->
     Prob = get_local_value(probability_of_repeat, Config),
     compare_with_sort_one_round(Min, Max, Step, Prob).
 
-compare_with_sort_one_round(Cur, Max, Step, Prob) when Cur > Max ->
+compare_with_sort_one_round(Cur, Max, _, _) when Cur > Max ->
     ok;
 compare_with_sort_one_round(Cur, Max, Step, Prob) ->
     compare_with_sort_one_item(Cur, Max, Prob),
