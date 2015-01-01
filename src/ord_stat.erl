@@ -28,11 +28,14 @@ rand_partition(List) ->
     F = fun(X) ->
                 X =< Pivot
         end,
-    {Smaller, Bigger} = lists:partition(F, List),
+    {Smaller, Bigger} = partition(F, List),
     {Pivot, Smaller, Bigger}.
 
 get_pivot(List) ->
     %% FIXME: calculate length in the beginning
     Idx = random:uniform(length(List)),
     lists:nth(Idx, List).
+
+partition(F, List) ->
+    lists:partition(F, List).
 
