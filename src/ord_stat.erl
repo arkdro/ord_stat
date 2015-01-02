@@ -78,17 +78,17 @@ partition(F, [H | T],
           {All_same_b, Len_b, Acc_b} = Not_sat) ->
     case F(H) of
         true ->
-            New_same = get_same_flag(All_same_a, H, Acc_a),
+            New_same = calc_same_flag(All_same_a, H, Acc_a),
             partition(F, T, {New_same, Len_a + 1, [H | Acc_a]}, Not_sat);
         false ->
-            New_same = get_same_flag(All_same_b, H, Acc_b),
+            New_same = calc_same_flag(All_same_b, H, Acc_b),
             partition(F, T, Sat, {New_same, Len_b + 1, [H | Acc_b]})
     end.
 
-get_same_flag(Flag, _, []) ->
+calc_same_flag(Flag, _, []) ->
     Flag;
-get_same_flag(Flag, H, [H | _]) ->
+calc_same_flag(Flag, H, [H | _]) ->
     Flag;
-get_same_flag(_, _, _) ->
+calc_same_flag(_, _, _) ->
     false.
 
