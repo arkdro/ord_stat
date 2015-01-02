@@ -17,14 +17,15 @@
 
 rank(I, List) ->
     Len = length(List),
-    if I > Len ->
+    if
+        I =< 0 ->
+            erlang:error({wrong_input_rank, I});
+        I > Len ->
             erlang:error({too_big_input_rank, [I, Len]});
-       true ->
+        true ->
             rank2(I, {false, Len, List})
     end.
 
-rank2(I, _) when I =< 0 ->
-    erlang:error({wrong_input_rank, I});
 rank2(I, {_, _, []}) ->
     erlang:error({empty_list, I});
 rank2(_, {true, _, [H | _]}) ->
