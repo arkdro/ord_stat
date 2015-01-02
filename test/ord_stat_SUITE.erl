@@ -23,6 +23,7 @@ groups() ->
                 {group, read}
                ]},
      {read, [], [
+                 rank4,
                  rank3,
                  rank2,
                  rank1
