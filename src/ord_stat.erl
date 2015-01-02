@@ -2,9 +2,9 @@
 %%% Order statistics. Randomized divide and conquer. Expected linear time.
 %%% [see CLRS]
 %%%
-%%% Original algorithm requires unique items in the input data.
-%%% To handle any input items, the program implements custom partitioning
-%%% function, that returns additional info: all-items-are-same flag
+%%% The original algorithm requires unique items in the input data.
+%%% To handle any input items, the program implements a custom partitioning
+%%% function, that returns an additional info: all-items-are-same flag
 %%% for every part of the result. It also returns a length as a small
 %%% optimization.
 %%%
