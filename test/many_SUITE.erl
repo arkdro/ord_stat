@@ -46,9 +46,8 @@ timing(Config) ->
     set_timeout(Config),
     Dur = get_duration(Config),
     Data = timing_till_timeout(Config, Dur),
-    ct:pal("timing all data:~n~p", [Data]),
     D2 = refine_timing_results(Data),
-    ct:pal("timing refined data:~n~p", [D2]),
+    ct:pal("refined timing data:~n~p", [D2]),
     ok.
 
 %% ===================================================================
