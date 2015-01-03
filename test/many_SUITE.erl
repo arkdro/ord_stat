@@ -46,7 +46,9 @@ timing(Config) ->
     set_timeout(Config),
     Dur = get_duration(Config),
     Data = timing_till_timeout(Config, Dur),
-    ct:pal("timing data:~n~p", [dict:to_list(Data)]),
+    ct:pal("timing all data:~n~p", [Data]),
+    D2 = refine_timing_results(Data),
+    ct:pal("timing refined data:~n~p", [D2]),
     ok.
 
 %% ===================================================================
@@ -250,4 +252,34 @@ merge_results_by_nreq(Results, Prev) ->
 
 add_one_item_results_to_acc(Nreqs, Result, Acc) ->
     dict:store(Nreqs, Result, Acc).
+
+refine_timing_results(Data) ->
+    Lengths = lists:sort(dict:fetch_keys(Data)),
+    [{Len, refine_one_length(Len, dict:fetch(Len, Data))} || Len <- Lengths].
+
+refine_one_length(Len, Data) ->
+    Nreqs = lists:sort(dict:fetch_keys(Data)),
+    [{N, refine_one_req(N, dict:fetch(N, Data))} || N <- Nreqs].
+
+refine_one_req(N, Data) ->
+    {Sort, Stat} = lists:unzip(Data),
+    {calc_stats(Sort), calc_stats(Stat)}.
+
+calc_stats(L) ->
+    Min = lists:min(L),
+    Max = lists:max(L),
+    Median = get_median(L),
+    Avg = get_avg(L),
+    [{min, Min}, {max, Max}, {median, Median}, {avg, Avg}].
+
+get_median(L) ->
+    Sorted = lists:sort(L),
+    Len = length(L),
+    Idx = round(Len / 2),
+    lists:nth(Idx, Sorted).
+
+get_avg(L) ->
+    Sum = lists:sum(L),
+    Len = length(L),
+    Sum / Len.
 
