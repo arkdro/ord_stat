@@ -10,8 +10,12 @@ Description
 Summary
 =======
 
-Order statistic wins for very big data array. For moderately sized data
-it is faster to use sort + lists:nth
+Order statistic wins for very big data array.
+Order statistic takes big constant (not to dive into big math of O notation
+here) time for every request.
+Use order statistic for big arrays and rare requests.
+For moderately sized data or frequent requests it is faster to use
+sort + lists:nth.
 
 Data
 ====
