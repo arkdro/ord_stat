@@ -20,8 +20,12 @@ all() ->
 groups() ->
     [
      {all, [], [
-                {group, compare}
+                {group, compare},
+                {group, timing}
                ]},
+     {timing, [], [
+                   timing
+                  ]},
      {compare, [parallel], [
                             compare_with_sort %% check correctness
                            ]}
