@@ -38,7 +38,8 @@ end_per_suite(_Config) ->
 compare_with_sort(Config) ->
     set_timeout(Config),
     Dur = get_duration(Config),
-    compare_with_sort_till_timeout(Config, Dur),
+    N = compare_with_sort_till_timeout(Config, Dur),
+    ct:pal("compare rounds: ~p", [N]),
     ok.
 
 %% ===================================================================
@@ -73,13 +74,13 @@ local_config(Config) ->
 compare_with_sort_till_timeout(Config, Dur) ->
     Cur = timestamp(),
     Stop = Cur + Dur - 1,
-    compare_with_sort_till_timeout(Config, Cur, Stop).
+    compare_with_sort_till_timeout(Config, Cur, Stop, 0).
 
-compare_with_sort_till_timeout(_, Cur, Stop) when Cur > Stop ->
-    ok;
-compare_with_sort_till_timeout(Config, _, Stop) ->
+compare_with_sort_till_timeout(_, Cur, Stop, Acc) when Cur > Stop ->
+    Acc;
+compare_with_sort_till_timeout(Config, _, Stop, Acc) ->
     compare_with_sort_one_round(Config),
-    compare_with_sort_till_timeout(Config, timestamp(), Stop).
+    compare_with_sort_till_timeout(Config, timestamp(), Stop, Acc + 1).
 
 compare_with_sort_one_round(Config) ->
     {Min, Max, Step} = get_local_value(length, Config),
