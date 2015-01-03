@@ -42,6 +42,13 @@ compare_with_sort(Config) ->
     ct:pal("compare acc: ~p", [N]),
     ok.
 
+timing(Config) ->
+    set_timeout(Config),
+    Dur = get_duration(Config),
+    Data = timing_till_timeout(Config, Dur),
+    ct:pal("timing data:~n~p", [dict:to_list(Data)]),
+    ok.
+
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
@@ -146,4 +153,101 @@ get_items_by_sort(Data) ->
 get_items_by_stat(Len, Data) ->
     Indices = lists:seq(1, Len),
     [ord_stat:rank(Idx, Data) || Idx <- Indices].
+
+timing_till_timeout(Config, Dur) ->
+    Cur = timestamp(),
+    Stop = Cur + Dur - 1,
+    timing_till_timeout(Config, Cur, Stop, dict:new()).
+
+timing_till_timeout(_, Cur, Stop, Acc) when Cur > Stop ->
+    Acc;
+timing_till_timeout(Config, _, Stop, Acc) ->
+    New_acc = timing_one_round(Config, Acc),
+    timing_till_timeout(Config, timestamp(), Stop, New_acc).
+
+timing_one_round(Config, Acc) ->
+    {Min, Max, Step} = get_local_value(length, Config),
+    timing_one_round_of_length(Min, Max, Step, Config, Acc).
+
+timing_one_round_of_length(Cur, Max, _, _, Acc) when Cur > Max ->
+    Acc;
+timing_one_round_of_length(Cur, Max, Step, Config, Acc) ->
+    Results = timing_one_round_of_reqs(Cur, Max, Config),
+    New_acc = add_results_one_length(Cur, Results, Acc),
+    Next = calc_next_length(Cur, Step),
+    timing_one_round_of_length(Next, Max, Step, Config, New_acc).
+
+timing_one_round_of_reqs(Len, Max, Config) ->
+    {Nstart, Nstop, Nstep} = get_local_value(requests, Config),
+    timing_one_round_of_reqs(Nstart, Nstop, Nstep, Len, Max, Config,
+                             dict:new()).
+
+timing_one_round_of_reqs(Cur, Stop, _, _, _, _, Acc) when Cur > Stop ->
+    Acc;
+timing_one_round_of_reqs(Cur, Stop, Step, Len, Lmax, Config, Acc) ->
+    Cur_result = timing_one_item_n_times(Cur, Len, Lmax, Config),
+    New_acc = add_one_item_results_to_acc(Cur, Cur_result, Acc),
+    Next = calc_next_length(Cur, Step),
+    timing_one_round_of_reqs(Next, Stop, Step, Len, Lmax, Config, New_acc).
+
+timing_one_item_n_times(Cur, Len, Max, Config) ->
+    Prob = get_local_value(probability_of_repeat, Config),
+    Nrepeats = get_local_value(one_round_repeats, Config),
+    [{Dsort, Dstat} = timing_one_item(Cur, Len, Max, Prob)
+     || _ <- lists:seq(1, Nrepeats)].
+
+timing_one_item(Nreqs, Len, Max, Prob) when Nreqs > Len ->
+    timing_one_item(Len, Len, Max, Prob);
+timing_one_item(Nreqs, Len, Max, Prob) ->
+    Data = gen_data(Len, Max, Prob),
+    Reqs = prepare_requests(Len, Nreqs),
+    T1 = os:timestamp(),
+    By_sort = get_timing_and_items_by_sort(Reqs, Data),
+    T2 = os:timestamp(),
+    By_stat = get_timing_and_items_by_stat(Reqs, Data),
+    T3 = os:timestamp(),
+    case By_stat of
+        By_sort ->
+            Dsort = timer:now_diff(T2, T1),
+            Dstat = timer:now_diff(T3, T2),
+            {Dsort, Dstat};
+        _ ->
+            ct:log("timing data mismatch, len=~p~n"
+                   "by sort:~n~p~nby stat:~n~p~n",
+                   [Len, By_sort, By_stat]),
+            erlang:error(data_mismatch)
+    end.
+
+prepare_requests(Len, Nreqs) ->
+    Ratio = trunc(Len / Nreqs),
+    L = lists:seq(Len, 1, -Ratio),
+    lists:sublist(L, 1, Nreqs).
+
+get_timing_and_items_by_sort(Reqs, Data) ->
+    Sorted = lists:sort(Data),
+    [lists:nth(Idx, Sorted) || Idx <- Reqs].
+
+get_timing_and_items_by_stat(Reqs, Data) ->
+    [ord_stat:rank(Idx, Data) || Idx <- Reqs].
+
+add_results_one_length(Len, Results, Acc) ->
+    %% Acc :: len -> dict()
+    %% Results :: nreqs -> [{sort, stat}]
+    case dict:find(Len, Acc) of
+        {ok, Prev} ->
+            Upd = merge_results_by_nreq(Results, Prev),
+            dict:store(Len, Upd, Acc);
+        error ->
+            dict:store(Len, Results, Acc)
+    end.
+
+merge_results_by_nreq(Results, Prev) ->
+    %% Results, Prev :: nreqs -> [{sort, stat}]
+    F = fun(_Nreq, L1, L2) ->
+                L1 ++ L2
+        end,
+    dict:merge(F, Results, Prev).
+
+add_one_item_results_to_acc(Nreqs, Result, Acc) ->
+    dict:store(Nreqs, Result, Acc).
 
