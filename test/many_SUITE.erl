@@ -39,7 +39,7 @@ compare_with_sort(Config) ->
     set_timeout(Config),
     Dur = get_duration(Config),
     N = compare_with_sort_till_timeout(Config, Dur),
-    ct:pal("compare rounds: ~p", [N]),
+    ct:pal("compare acc: ~p", [N]),
     ok.
 
 %% ===================================================================
@@ -74,24 +74,27 @@ local_config(Config) ->
 compare_with_sort_till_timeout(Config, Dur) ->
     Cur = timestamp(),
     Stop = Cur + Dur - 1,
-    compare_with_sort_till_timeout(Config, Cur, Stop, 0).
+    compare_with_sort_till_timeout(Config, Cur, Stop, {0, 0}).
 
 compare_with_sort_till_timeout(_, Cur, Stop, Acc) when Cur > Stop ->
     Acc;
-compare_with_sort_till_timeout(Config, _, Stop, Acc) ->
-    compare_with_sort_one_round(Config),
-    compare_with_sort_till_timeout(Config, timestamp(), Stop, Acc + 1).
+compare_with_sort_till_timeout(Config, _, Stop, {Rounds, Lengths}) ->
+    Lengths_round = compare_with_sort_one_round(Config),
+    compare_with_sort_till_timeout(Config, timestamp(), Stop,
+                                   {Rounds + 1, Lengths + Lengths_round}).
 
 compare_with_sort_one_round(Config) ->
     {Min, Max, Step} = get_local_value(length, Config),
     Prob = get_local_value(probability_of_repeat, Config),
-    compare_with_sort_one_round(Min, Max, Step, Prob).
+    compare_with_sort_one_round(Min, Max, Step, Prob, 0).
 
-compare_with_sort_one_round(Cur, Max, _, _) when Cur > Max ->
-    ok;
-compare_with_sort_one_round(Cur, Max, Step, Prob) ->
+compare_with_sort_one_round(Cur, Max, _, _, Acc) when Cur > Max ->
+    Acc;
+compare_with_sort_one_round(Cur, Max, Step, Prob, Lengths) ->
     compare_with_sort_one_item(Cur, Max, Prob),
-    compare_with_sort_one_round(Cur + Step, Max, Step, Prob).
+    Next = calc_next_length(Cur, Step),
+    ct:log("round, acc=~p, cur=~p", [Lengths, Cur]),
+    compare_with_sort_one_round(Next, Max, Step, Prob, Lengths + Cur).
 
 compare_with_sort_one_item(Len, Max, Prob) ->
     Data = gen_data(Len, Max, Prob),
@@ -111,6 +114,11 @@ timestamp() ->
 
 timestamp({MS, S, _}) ->
     MS * 1000000 + S.
+
+calc_next_length(Cur, {add, N}) ->
+    Cur + N;
+calc_next_length(Cur, {mult, N}) ->
+    round(Cur * N).
 
 gen_data(Len, Max, Prob) ->
     gen_data(Len, Max, Prob, []).
